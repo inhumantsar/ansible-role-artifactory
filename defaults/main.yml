@@ -1,0 +1,17 @@
+---
+service_env: "dev"
+service_name: "artifactory"
+
+hostport_http: "80"
+
+# all postgres and artifactory data will be kept here
+hostpath_data: "/srv/artifactory/data"
+
+postgres_image: "docker.bintray.io/postgres"
+postgres_image_tag: "9.5.2"
+postgres_user: "artifactory"
+postgres_password: "password"
+
+artifactory_image: "docker.bintray.io/jfrog/artifactory-pro"
+artifactory_image_tag: "5.4.3"
+artifactory_javaopts: "-Xmx4g"

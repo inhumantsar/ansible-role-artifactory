@@ -1,0 +1,65 @@
+---
+# tasks file for docker-compose-artifactory
+- debug: msg="Starting tasks from docker-compose-artifactory..."
+
+# vars/main.yml is auto-imported.
+- name: Import env-sensitive overrides
+  include_vars: "vars/{{ service_env }}.yml"
+  when: service_env != "dev"
+
+# easy pre-reqs
+- name: Ensure the docker libs are installed.
+  pip:
+    name: docker
+    version: 2.3.0
+- name: Ensure docker-compose libs are installed
+  pip:
+    name: docker-compose
+
+# do the thing
+- name: Launch services with docker-compose.yml
+  docker_service:
+    project_name: "{{ service_env }}_{{ service_name }}"
+    definition:
+      version: "2"
+      services:
+        postgresql:
+          image: {{ postgres_image }}:{{ postgres_image_tag }}
+          container_name: "{{ service_env }}_{{ service_name }}_postgresql"
+          environment:
+           - POSTGRES_DB=artifactory
+           # The following must match the DB_USER and DB_PASSWORD values passed to Artifactory
+           - "POSTGRES_USER={{ postgres_user }}"
+           - "POSTGRES_PASSWORD={{ postgres_password }}"
+          volumes:
+           - "{{ hostpath_data }}/postgresql:/var/lib/postgresql/data"
+          restart: always
+        artifactory:
+          image: "{{ artifactory_image }}:{{ artifactory_image_tag }}"
+          container_name: "{{ service_env }}_{{ service_name }}_artifactory"
+          ports:
+           - "{{ hostport_http }}:8081"
+          depends_on:
+           - "{{ service_env }}_{{ service_name }}_postgresql"
+          links:
+           - "{{ service_env }}_{{ service_name }}_postgresql"
+          volumes:
+           - "{{ hostpath_data }}/artifactory:/var/opt/jfrog/artifactory"
+          environment:
+           - DB_TYPE=postgresql
+           # The following must match the POSTGRES_USER and POSTGRES_PASSWORD values passed to PostgreSQL
+           - "DB_USER={{ postgres_user }}"
+           - "DB_PASSWORD={{ postgres_password }}"
+           # Add extra Java options by uncommenting the following line
+           - "EXTRA_JAVA_OPTIONS={{ artifactory_javaopts }}"
+          restart: always
+  register: output
+
+- debug: var=output
+
+# inline unit testing
+- name: Confirm services launched successfully
+  assert:
+    that:
+      - "postgres.{{ service_name }}{{ service_env }}_postgres_1.state.running"
+      - "artifactory.{{ service_name }}{{ service_env }}_artifactory_1.state.running"
