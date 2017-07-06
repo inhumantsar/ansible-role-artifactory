@@ -1,6 +1,7 @@
 ---
 service_env: "dev"
 service_name: "artifactory"
+service_state: "present"
 
 hostport_http: "80"
 

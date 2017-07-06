@@ -19,6 +19,7 @@
 # do the thing
 - name: Launch services with docker-compose.yml
   docker_service:
+    state: "{{ service_state }}"
     project_name: "{{ service_env }}_{{ service_name }}"
     definition:
       version: "2"
@@ -63,3 +64,4 @@
     that:
       - "postgresql.{{ service_env }}_{{ service_name }}_postgresql.state.running"
       - "artifactory.{{ service_env }}_{{ service_name }}_artifactory.state.running"
+  when: service_state == "present"
