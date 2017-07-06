@@ -40,9 +40,9 @@
           ports:
            - "{{ hostport_http }}:8081"
           depends_on:
-           - "{{ service_env }}_{{ service_name }}_postgresql"
+           - "postgresql"
           links:
-           - "{{ service_env }}_{{ service_name }}_postgresql"
+           - "postgresql"
           volumes:
            - "{{ hostpath_data }}/artifactory:/var/opt/jfrog/artifactory"
           environment:
@@ -61,5 +61,5 @@
 - name: Confirm services launched successfully
   assert:
     that:
-      - "postgres.{{ service_name }}{{ service_env }}_postgres_1.state.running"
-      - "artifactory.{{ service_name }}{{ service_env }}_artifactory_1.state.running"
+      - "postgresql.{{ service_env }}_{{ service_name }}_postgresql.state.running"
+      - "artifactory.{{ service_env }}_{{ service_name }}_artifactory.state.running"
