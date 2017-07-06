@@ -24,7 +24,7 @@
       version: "2"
       services:
         postgresql:
-          image: {{ postgres_image }}:{{ postgres_image_tag }}
+          image: "{{ postgres_image }}:{{ postgres_image_tag }}"
           container_name: "{{ service_env }}_{{ service_name }}_postgresql"
           environment:
            - POSTGRES_DB=artifactory
