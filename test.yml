@@ -1,4 +1,5 @@
 - hosts: all
+  connection: local
   become: True
   handlers:
     - include: 'handlers/main.yml'

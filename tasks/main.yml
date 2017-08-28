@@ -4,53 +4,50 @@
 
 # vars/main.yml is auto-imported.
 - name: Import env-sensitive overrides
-  include_vars: "vars/{{ service_env }}.yml"
-  when: service_env != "dev"
+  include_vars: "vars/{{ artifactory_env }}.yml"
+  when: artifactory_env != "dev"
 
 # easy pre-reqs
 - name: Ensure the docker libs are installed.
-  pip:
-    name: docker
-    version: 2.3.0
+  pip: name=docker
 - name: Ensure docker-compose libs are installed
-  pip:
-    name: docker-compose
+  pip: name=docker-compose
 
 # do the thing
 - name: Launch services with docker-compose.yml
   docker_service:
-    state: "{{ service_state }}"
-    project_name: "{{ service_env }}_{{ service_name }}"
+    state: "{{ artifactory_state }}"
+    project_name: "{{ artifactory_env }}_{{ artifactory_name }}"
     definition:
       version: "2"
       services:
         postgresql:
-          image: "{{ postgres_image }}:{{ postgres_image_tag }}"
-          container_name: "{{ service_env }}_{{ service_name }}_postgresql"
+          image: "{{ artifactory_postgres_image }}:{{ artifactory_postgres_image_tag }}"
+          container_name: "{{ artifactory_env }}_{{ artifactory_name }}_postgresql"
           environment:
            - POSTGRES_DB=artifactory
            # The following must match the DB_USER and DB_PASSWORD values passed to Artifactory
-           - "POSTGRES_USER={{ postgres_user }}"
-           - "POSTGRES_PASSWORD={{ postgres_password }}"
+           - "POSTGRES_USER={{ artifactory_postgres_user }}"
+           - "POSTGRES_PASSWORD={{ artifactory_postgres_password }}"
           volumes:
-           - "{{ hostpath_data }}/postgresql:/var/lib/postgresql/data"
+           - "{{ artifactory_datapath }}/postgresql:/var/lib/postgresql/data"
           restart: always
         artifactory:
           image: "{{ artifactory_image }}:{{ artifactory_image_tag }}"
-          container_name: "{{ service_env }}_{{ service_name }}_artifactory"
+          container_name: "{{ artifactory_env }}_{{ artifactory_name }}_artifactory"
           ports:
-           - "{{ hostport_http }}:8081"
+           - "{{ artifactory_port }}:8081"
           depends_on:
            - "postgresql"
           links:
            - "postgresql"
           volumes:
-           - "{{ hostpath_data }}/artifactory:/var/opt/jfrog/artifactory"
+           - "{{ artifactory_datapath }}/artifactory:/var/opt/jfrog/artifactory"
           environment:
            - DB_TYPE=postgresql
            # The following must match the POSTGRES_USER and POSTGRES_PASSWORD values passed to PostgreSQL
-           - "DB_USER={{ postgres_user }}"
-           - "DB_PASSWORD={{ postgres_password }}"
+           - "DB_USER={{ artifactory_postgres_user }}"
+           - "DB_PASSWORD={{ artifactory_postgres_password }}"
            # Add extra Java options by uncommenting the following line
            - "EXTRA_JAVA_OPTIONS={{ artifactory_javaopts }}"
           restart: always
@@ -62,6 +59,6 @@
 - name: Confirm services launched successfully
   assert:
     that:
-      - "postgresql.{{ service_env }}_{{ service_name }}_postgresql.state.running"
-      - "artifactory.{{ service_env }}_{{ service_name }}_artifactory.state.running"
-  when: service_state == "present"
+      - "postgresql.{{ artifactory_env }}_{{ artifactory_name }}_postgresql.state.running"
+      - "artifactory.{{ artifactory_env }}_{{ artifactory_name }}_artifactory.state.running"
+  when: artifactory_state == "present"
