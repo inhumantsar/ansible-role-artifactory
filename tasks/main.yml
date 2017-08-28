@@ -12,6 +12,8 @@
   pip: name=docker
 - name: Ensure docker-compose libs are installed
   pip: name=docker-compose
+- name: Requests (because travis?)
+  pip: name=requests
 
 # do the thing
 - name: Launch services with docker-compose.yml
