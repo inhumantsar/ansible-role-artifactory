@@ -1,7 +1,9 @@
 language: python
 python: "2.7"
-
+dist: trusty
 sudo: required
+services:
+  - docker
 
 branches:
   only:
@@ -19,7 +21,7 @@ install:
   # version checks
   - ansible --version
 
-  # Create ansible.cfg with correct roles_path
+  # create ansible.cfg with correct roles_path
   - printf '[defaults]\nroles_path=../' > ansible.cfg
 
 script:
