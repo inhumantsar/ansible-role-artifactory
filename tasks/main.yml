@@ -15,7 +15,7 @@
 - name: Ensure the docker-compose python libs are installed.
   pip:
     name: docker-compose
-    version: "{{ pypi_docker_compose_version|default(omit) }}"
+    version: "{{ artifactory_pypi_docker_compose_version|default(omit) }}"
 
 # do the thing
 - name: Launch services with docker-compose.yml
