@@ -8,10 +8,14 @@
   when: artifactory_env != "dev"
 
 # easy pre-reqs
-- name: Ensure the docker libs are installed.
-  pip: name=docker
-- name: Ensure docker-compose libs are installed
-  pip: name=docker-compose
+- name: Ensure the docker and docker-compose python libs are installed.
+  pip:
+    name: docker
+    version: "{{ artifactory_pypi_docker_version|default(omit) }}"
+- name: Ensure the docker-compose python libs are installed.
+  pip:
+    name: docker-compose
+    version: "{{ artifactory_pypi_docker_compose_version|default(omit) }}"
 
 # do the thing
 - name: Launch services with docker-compose.yml

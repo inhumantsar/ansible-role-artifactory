@@ -3,6 +3,10 @@ artifactory_env: "dev"
 artifactory_name: "artifactory"
 artifactory_state: "present"
 
+# library versions, set these to override latest
+# artifactory_pypi_docker_version: 'x.x.x'
+artifactory_pypi_docker_compose_version: '1.15.0'
+
 artifactory_port: "80"
 
 # all postgres and artifactory data will be kept here
