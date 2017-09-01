@@ -1,4 +1,4 @@
-# docker-compose-artifactory
+# ansible-role-artifactory
 
 ## What?
 
@@ -18,15 +18,15 @@ yum install -y git gcc python-devel openssl-devel
 pip install ansible
 
 echo -e """- src: geerlingguy.docker
-- src: inhumantsar.docker-compose-artifactory""" > requirements.yml
+- src: inhumantsar.artifactory""" > requirements.yml
 
 ansible-galaxy install -r requirements.yml
 
-echo """---
+echo """---    
 - hosts: localhost
   roles:
    - geerlingguy.docker
-   - inhumantsar.docker-compose-artifactory""" > playbook.yml
+   - inhumantsar.artifactory""" > playbook.yml
 
 ansible-playbook playbook.yml
 ```
