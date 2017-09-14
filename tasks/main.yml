@@ -22,38 +22,45 @@
   docker_service:
     state: "{{ artifactory_state }}"
     project_name: "{{ artifactory_env }}_{{ artifactory_name }}"
+    pull: yes
     definition:
-      version: "2"
+      version: "2.1"
       services:
         postgresql:
           image: "{{ artifactory_postgres_image }}:{{ artifactory_postgres_image_tag }}"
           container_name: "{{ artifactory_env }}_{{ artifactory_name }}_postgresql"
           environment:
-           - POSTGRES_DB=artifactory
-           # The following must match the DB_USER and DB_PASSWORD values passed to Artifactory
-           - "POSTGRES_USER={{ artifactory_postgres_user }}"
-           - "POSTGRES_PASSWORD={{ artifactory_postgres_password }}"
+            - POSTGRES_DB=artifactory
+            # The following must match the DB_USER and DB_PASSWORD values passed to Artifactory
+            - "POSTGRES_USER={{ artifactory_postgres_user }}"
+            - "POSTGRES_PASSWORD={{ artifactory_postgres_password }}"
           volumes:
-           - "{{ artifactory_datapath }}/postgresql:/var/lib/postgresql/data"
+            - "{{ artifactory_datapath }}/postgresql:/var/lib/postgresql/data"
           restart: always
+          healthcheck:
+            test: ["CMD-SHELL", "pg_isready"]
+            interval: 30s
+            timeout: 30s
+            retries: 3
         artifactory:
           image: "{{ artifactory_image }}:{{ artifactory_image_tag }}"
           container_name: "{{ artifactory_env }}_{{ artifactory_name }}_artifactory"
           ports:
-           - "{{ artifactory_port }}:8081"
+            - "{{ artifactory_port }}:8081"
           depends_on:
-           - "postgresql"
+            - "postgresql"
           links:
-           - "postgresql"
+            - "postgresql"
           volumes:
-           - "{{ artifactory_datapath }}/artifactory:/var/opt/jfrog/artifactory"
+            - "{{ artifactory_datapath }}/artifactory:/var/opt/jfrog/artifactory"
+          entrypoint: /bin/bash sleep 60 && /entrypoint-artifactory.sh
           environment:
-           - DB_TYPE=postgresql
-           # The following must match the POSTGRES_USER and POSTGRES_PASSWORD values passed to PostgreSQL
-           - "DB_USER={{ artifactory_postgres_user }}"
-           - "DB_PASSWORD={{ artifactory_postgres_password }}"
-           # Add extra Java options by uncommenting the following line
-           - "EXTRA_JAVA_OPTIONS={{ artifactory_javaopts }}"
+            - DB_TYPE=postgresql
+            # The following must match the POSTGRES_USER and POSTGRES_PASSWORD values passed to PostgreSQL
+            - "DB_USER={{ artifactory_postgres_user }}"
+            - "DB_PASSWORD={{ artifactory_postgres_password }}"
+            # Add extra Java options by uncommenting the following line
+            - "EXTRA_JAVA_OPTIONS={{ artifactory_javaopts }}"
           restart: always
   register: output
 
