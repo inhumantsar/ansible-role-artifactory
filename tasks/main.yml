@@ -53,7 +53,7 @@
             - "postgresql"
           volumes:
             - "{{ artifactory_datapath }}/artifactory:/var/opt/jfrog/artifactory"
-          entrypoint: /bin/bash sleep 60 && /entrypoint-artifactory.sh
+          entrypoint: /entrypoint-artifactory.sh
           environment:
             - DB_TYPE=postgresql
             # The following must match the POSTGRES_USER and POSTGRES_PASSWORD values passed to PostgreSQL
