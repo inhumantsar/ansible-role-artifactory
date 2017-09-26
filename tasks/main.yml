@@ -17,6 +17,23 @@
     name: docker-compose
     version: "{{ artifactory_pypi_docker_compose_version|default(omit) }}"
 
+# drop nginx configs
+- name: Create NGINX logs directory
+  file:
+    state: directory
+    path: "{{ artifactory_datapath }}/nginx/logs"
+    mode: 0755
+- name: Create NGINX config directory
+  file:
+    state: directory
+    path: "{{ artifactory_datapath }}/nginx"
+    mode: 0755
+- name: Drop NGINX config file
+  copy:
+    dest: "{{ artifactory_datapath }}/nginx/nginx.conf"
+    content: "{{ artifactory_proxy_config }}"
+    mode: 0644
+
 # do the thing
 - name: Launch services with docker-compose.yml
   docker_service:
@@ -26,6 +43,16 @@
     definition:
       version: "2.1"
       services:
+        nginx:
+          image: "{{ artifactory_proxy_image }}:{{ artifactory_proxy_image_tag }}"
+          container_name: "{{ artifactory_env }}_{{ artifactory_name }}_nginx"
+          volumes:
+            - "{{ artifactory_datapath }}/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro"
+            - "{{ artifactory_datapath }}/nginx/logs:/var/log/nginx"
+          links:
+            - "artifactory"
+          ports:
+            - "{{ artifactory_port }}:80"
         postgresql:
           image: "{{ artifactory_postgres_image }}:{{ artifactory_postgres_image_tag }}"
           container_name: "{{ artifactory_env }}_{{ artifactory_name }}_postgresql"
@@ -45,8 +72,6 @@
         artifactory:
           image: "{{ artifactory_image }}:{{ artifactory_image_tag }}"
           container_name: "{{ artifactory_env }}_{{ artifactory_name }}_artifactory"
-          ports:
-            - "{{ artifactory_port }}:8081"
           depends_on:
             - "postgresql"
           links:
@@ -72,4 +97,5 @@
     that:
       - "postgresql.{{ artifactory_env }}_{{ artifactory_name }}_postgresql.state.running"
       - "artifactory.{{ artifactory_env }}_{{ artifactory_name }}_artifactory.state.running"
+      - "nginx.{{ artifactory_env }}_{{ artifactory_name }}_nginx.state.running"
   when: artifactory_state == "present"
