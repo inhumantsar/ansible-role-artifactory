@@ -18,15 +18,15 @@
     version: "{{ artifactory_pypi_docker_compose_version|default(omit) }}"
 
 # drop nginx configs
-- name: Create NGINX logs directory
-  file:
-    state: directory
-    path: "{{ artifactory_datapath }}/nginx/logs"
-    mode: 0755
 - name: Create NGINX config directory
   file:
     state: directory
     path: "{{ artifactory_datapath }}/nginx"
+    mode: 0755
+- name: Create NGINX logs directory
+  file:
+    state: directory
+    path: "{{ artifactory_datapath }}/nginx/logs"
     mode: 0755
 - name: Drop NGINX config file
   copy:
