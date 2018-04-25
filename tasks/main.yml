@@ -65,7 +65,7 @@
             - "{{ artifactory_datapath }}/postgresql:/var/lib/postgresql/data"
           restart: always
           healthcheck:
-            test: ["CMD-SHELL", "pg_isready"]
+            test: ["CMD-SHELL", "pg_isready -U {{ artifactory_postgres_user }}"]
             interval: 30s
             timeout: 30s
             retries: 3
