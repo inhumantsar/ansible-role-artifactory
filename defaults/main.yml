@@ -13,7 +13,7 @@ artifactory_port: "80"
 artifactory_datapath: "/srv/artifactory"
 
 artifactory_postgres_image: "docker.bintray.io/postgres"
-artifactory_postgres_image_tag: "latest"
+artifactory_postgres_image_tag: "9.5.2"
 artifactory_postgres_user: "artifactory"
 artifactory_postgres_password: "password"
 
