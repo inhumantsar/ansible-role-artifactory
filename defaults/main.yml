@@ -37,12 +37,6 @@ artifactory_proxy_config: |
       listen 80;
       server_name ~(?<repo>.+)\.{{ artifactory_url }} {{ artifactory_url }};
 
-      if ($http_x_forwarded_proto = '') {
-        set $http_x_forwarded_proto  $scheme;
-      }
-      if ($http_x_forwarded_proto != 'https') {
-        rewrite ^ https://$host$request_uri? permanent;
-      }
 
       ## Application specific logs
       access_log /var/log/nginx/{{ artifactory_url }}-access.log combined;
@@ -52,20 +46,46 @@ artifactory_proxy_config: |
       rewrite ^/(v1|v2)/(.*) /artifactory/api/docker/$repo/$1/$2;
       chunked_transfer_encoding on;
       client_max_body_size 0;
-      location /artifactory/ {
-      proxy_read_timeout  900;
-      proxy_pass_header   Server;
-      proxy_cookie_path   ~*^/.* /;
 
-      # the following URLs refer to the Docker link and native port
-      if ( $request_uri ~ ^/artifactory/(.*)$ ) {
-          proxy_pass          http://artifactory:8081/artifactory/$1;
+      location /artifactory/ {
+          if ($http_x_forwarded_proto = '') {
+            set $http_x_forwarded_proto  $scheme;
+          }
+          if ($http_x_forwarded_proto != 'https') {
+            rewrite ^ https://$host$request_uri? permanent;
+          }
+
+          proxy_read_timeout  900;
+          proxy_pass_header   Server;
+          proxy_cookie_path   ~*^/.* /;
+
+          # the following URLs refer to the Docker link and native port
+          if ( $request_uri ~ ^/artifactory/(.*)$ ) {
+              proxy_pass          http://artifactory:8081/artifactory/$1;
+          }
+          proxy_pass          http://artifactory:8081/artifactory/;
+          proxy_set_header    X-Artifactory-Override-Base-Url https://$host/artifactory;
+          proxy_set_header    X-Forwarded-Port  443;
+          proxy_set_header    X-Forwarded-Proto https;
+          proxy_set_header    Host              $http_host;
+          proxy_set_header    X-Forwarded-For   $proxy_add_x_forwarded_for;
       }
-      proxy_pass          http://artifactory:8081/artifactory/;
-      proxy_set_header    X-Artifactory-Override-Base-Url https://$host/artifactory;
-      proxy_set_header    X-Forwarded-Port  443;
-      proxy_set_header    X-Forwarded-Proto https;
-      proxy_set_header    Host              $http_host;
-      proxy_set_header    X-Forwarded-For   $proxy_add_x_forwarded_for;
+
+      location /artifactory/api/system/ping {
+          # same as /artifactory, but without the SSL redirect
+          proxy_read_timeout  900;
+          proxy_pass_header   Server;
+          proxy_cookie_path   ~*^/.* /;
+
+          # the following URLs refer to the Docker link and native port
+          if ( $request_uri ~ ^/artifactory/(.*)$ ) {
+              proxy_pass          http://artifactory:8081/artifactory/$1;
+          }
+          proxy_pass          http://artifactory:8081/artifactory/;
+          proxy_set_header    X-Artifactory-Override-Base-Url https://$host/artifactory;
+          proxy_set_header    X-Forwarded-Port  443;
+          proxy_set_header    X-Forwarded-Proto https;
+          proxy_set_header    Host              $http_host;
+          proxy_set_header    X-Forwarded-For   $proxy_add_x_forwarded_for;
       }
   }
